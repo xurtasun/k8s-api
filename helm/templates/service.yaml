@@ -1,0 +1,19 @@
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.project }}
+  namespace: {{ .Values.project }}
+  labels:
+    app.kubernetes.io/name: {{.Values.project}}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    service: {{.Values.project}}
+    environment: {{.Values.environment}}
+    project: {{.Values.project}}
+spec:
+  ports:
+{{ toYaml .Values.service.ports | indent 4 }}
+  selector:
+    project: {{.Values.project}}
+  type: ClusterIP
+{{- end }}

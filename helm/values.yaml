@@ -1,0 +1,77 @@
+project: xurtasun
+environment: prod
+deployment:
+  rollingUpdate:
+    # specifies the maximum number of Pods that can be unavailable during the update process.The value can be an absolute number (for example, 5) or a percentage of desired Pods (for example, 10%)
+    maxUnavailable: 0%
+    # specifies the maximum number of Pods that can be created over the desired number of Pods. The value can be an absolute number (for example, 5) or a percentage of desired Pods (for example, 10%)
+    maxSurge: 50%
+  revisionHistoryLimit: 3
+  ## Lifecycle hooks. Actions to do before starting or stopping the container.
+  lifecycle: {}
+container:
+  podAnnotations: {}
+  image:
+    registry: xurtasun
+    repository: api
+    tag: v2
+    pullPolicy: IfNotPresent
+  resources:
+    ## We usually recommend not define cpu limit
+    limits:
+      memory: 200Mi
+    requests:
+      cpu: 50m
+      memory: 200Mi
+  ports:
+  - name: prometheus
+    containerPort: 8080
+    protocol: TCP
+  - name: api
+    containerPort: 5000
+    protocol: TCP
+  livenessProbe:
+    httpGet:
+      path: /ping
+      port: 5000
+    initialDelaySeconds: 1
+    periodSeconds: 30
+    timeoutSeconds: 30
+    successThreshold: 1
+    failureThreshold: 10
+  readinessProbe:
+    httpGet:
+      path: /ping
+      port: 5000
+    initialDelaySeconds: 1
+    timeoutSeconds: 30
+    successThreshold: 1
+    periodSeconds: 30
+    failureThreshold: 10
+  prometheus:
+    metric:
+      name: 'requests'
+      description: 'Counter of requests /data done.'
+hpa:
+  minReplicas: 1
+  maxReplicas: 2
+  ## average total CPU usage per pod (1-100)
+  cpu: 100
+  ## memory scaling
+  # memory: 200Mi
+serviceAccount:
+  enabled: true
+  name : xurtasun
+service:
+  enabled: true
+  ## Ports on Service resource. Usually the same as containerPorts
+  ## Unset it in case your application don't listen to any port.
+  ports:
+  - name: prometheus
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: api
+    port: 5000
+    targetPort: 5000
+    protocol: TCP
